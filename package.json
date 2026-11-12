@@ -17,6 +17,7 @@
   "scripts": {
     "build": "webpack --mode production",
     "build:gh-pages": "webpack --mode production && node scripts/build-manifest.js",
+    "wss-proxy": "node scripts/wss-proxy.js",
     "build:dev": "webpack --mode development",
     "dev-server": "webpack serve --mode development",
     "lint": "office-addin-lint check",

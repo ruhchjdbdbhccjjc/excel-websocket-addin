@@ -58,7 +58,9 @@ export class WebSocketClient {
     this.isManualDisconnect = false;
     this.reconnectAttempts = 0;
 
-    const url = `ws://localhost:${port}`;
+    const isSecurePort = port === 8891;
+    const protocol = isSecurePort ? 'wss://' : 'ws://';
+    const url = `${protocol}localhost:${port}`;
     this.logger.info(`Connecting to WebSocket server at ${url}`);
 
     try {
