@@ -1,0 +1,173 @@
+{
+    "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.24/MicrosoftTeams.schema.json",
+    "id": "c1b06178-4084-4a0e-8f1e-7acddec19930",
+    "manifestVersion": "1.24",
+    "version": "1.0.0.0",
+    "name": {
+      "short": "Excel WebSocket",
+      "full": "Excel WebSocket Office Add-in"
+    },
+    "description": {
+      "short": "Excel WebSocket Office Add-in",
+      "full": "Connect Excel to Kanata keyboard controller and automation via WebSocket."
+    },
+    "developer": {
+      "name": "Contoso",
+      "websiteUrl": "https://www.contoso.com",
+      "privacyUrl": "https://www.contoso.com/privacy",
+      "termsOfUseUrl": "https://www.contoso.com/servicesagreement"
+    },
+    "icons": {
+      "outline": "assets/outline.png",
+      "color": "assets/color.png"
+    },
+    "accentColor": "#230201",
+    "localizationInfo": {
+      "defaultLanguageTag": "en-us",
+      "additionalLanguages": []
+    },
+    "authorization": {
+      "permissions": {
+        "resourceSpecific": [
+          {
+            "name": "Document.ReadWrite.User",
+            "type": "Delegated"
+          }
+        ]
+      }
+    },
+    "validDomains": ["contoso.com", "localhost:3000"],
+    "extensions": [
+      {
+        "requirements": {
+          "scopes": ["workbook"],
+          "capabilities": [{ "name": "AddinCommands", "minVersion": "1.1" }]
+        },
+        "runtimes": [
+          {
+            "id": "SharedRuntime",
+            "type": "general",
+            "code": {
+              "page": "https://localhost:3000/taskpane.html"
+            },
+            "lifetime": "long",
+            "actions": [
+              {
+                "id": "TaskPaneRuntimeShow",
+                "type": "openPage"
+              },
+              {
+                "id": "action",
+                "type": "executeFunction"
+              }
+            ]
+          }
+        ],
+        "ribbons": [
+          {
+            "contexts": ["default"],
+            "tabs": [
+              {
+                "builtInTabId": "TabHome",
+                "groups": [
+                  {
+                    "id": "workbookGroup",
+                    "label": "Kanata Shortcut",
+                    "icons": [
+                      {
+                        "size": 16,
+                        "url": "https://localhost:3000/assets/icon-connected-16.png"
+                      },
+                      {
+                        "size": 32,
+                        "url": "https://localhost:3000/assets/icon-connected-32.png"
+                      },
+                      {
+                        "size": 80,
+                        "url": "https://localhost:3000/assets/icon-connected-80.png"
+                      }
+                    ],
+                    "controls": [
+                      {
+                        "id": "btnWsConnected",
+                        "type": "button",
+                        "label": "Kanata: Connected",
+                        "icons": [
+                          {
+                            "size": 16,
+                            "url": "https://localhost:3000/assets/icon-connected-16.png"
+                          },
+                          {
+                            "size": 32,
+                            "url": "https://localhost:3000/assets/icon-connected-32.png"
+                          },
+                          {
+                            "size": 80,
+                            "url": "https://localhost:3000/assets/icon-connected-80.png"
+                          }
+                        ],
+                        "supertip": {
+                          "title": "Kanata Connected",
+                          "description": "Background WebSocket connected. Click to open panel."
+                        },
+                        "actionId": "TaskPaneRuntimeShow"
+                      },
+                      {
+                        "id": "btnWsDisconnected",
+                        "type": "button",
+                        "label": "Kanata: Disconnected",
+                        "icons": [
+                          {
+                            "size": 16,
+                            "url": "https://localhost:3000/assets/icon-disconnected-16.png"
+                          },
+                          {
+                            "size": 32,
+                            "url": "https://localhost:3000/assets/icon-disconnected-32.png"
+                          },
+                          {
+                            "size": 80,
+                            "url": "https://localhost:3000/assets/icon-disconnected-80.png"
+                          }
+                        ],
+                        "supertip": {
+                          "title": "Kanata Disconnected",
+                          "description": "Background WebSocket offline. Click to open panel."
+                        },
+                        "actionId": "TaskPaneRuntimeShow"
+                      },
+                      {
+                        "id": "ActionButton",
+                        "type": "button",
+                        "label": "Perform Action",
+                        "icons": [
+                          {
+                            "size": 16,
+                            "url": "https://localhost:3000/assets/icon-16.png"
+                          },
+                          {
+                            "size": 32,
+                            "url": "https://localhost:3000/assets/icon-32.png"
+                          },
+                          {
+                            "size": 80,
+                            "url": "https://localhost:3000/assets/icon-80.png"
+                          }
+                        ],
+                        "supertip": {
+                          "title": "Perform an action",
+                          "description": "Perform an action when clicked."
+                        },
+                        "actionId": "action"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  

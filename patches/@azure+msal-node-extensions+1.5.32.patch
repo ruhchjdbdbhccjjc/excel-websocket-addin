@@ -1,0 +1,16 @@
+diff --git a/node_modules/@azure/msal-node-extensions/lib/msal-node-extensions.cjs b/node_modules/@azure/msal-node-extensions/lib/msal-node-extensions.cjs
+index eda3b6f..ebdf967 100644
+--- a/node_modules/@azure/msal-node-extensions/lib/msal-node-extensions.cjs
++++ b/node_modules/@azure/msal-node-extensions/lib/msal-node-extensions.cjs
+@@ -1854,7 +1854,10 @@ class NativeBrokerPlugin {
+             piiLoggingEnabled: false,
+         };
+         this.logger = new Logger(defaultLoggerOptions, name, version); // Default logger
+-        this.isBrokerAvailable = msalNodeRuntime.msalNodeRuntime.StartupError ? false : true;
++        // PATCHED: Force disable WAM broker — WAM fails with ApiContractViolation (0x80860001)
++        // when run as Administrator or in a console without a valid Win32 HWND.
++        // This forces MSAL to fall back to browser-based / device code auth flow.
++        this.isBrokerAvailable = false;
+     }
+     setLogger(loggerOptions) {
+         this.logger = new Logger(loggerOptions, name, version);

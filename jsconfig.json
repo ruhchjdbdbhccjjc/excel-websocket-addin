@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "lib": ["es2015", "dom"],
+    "types": ["office-js"],
+    "allowJs": true,
+    "checkJs": true,
+    "jsx": "react",
+    "baseUrl": ".",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "lib",
+    "lib-amd"
+  ]
+}
