@@ -81,6 +81,15 @@ The add-in includes a zero-destruction spotlight highlighting system powered by 
 - **Global Error & Console Interception**: Hooks into `console.log/warn/error` and `window.onerror` / `unhandledrejection` to catch silent failures and runtime exceptions.
 - **One-Click Diagnostic Log Bundle Export**: Exports formatted `.log` diagnostic bundles complete with Office host fingerprints, connection states, and timestamped trace lines for instant troubleshooting.
 
+## Cross-Origin WSS & Browser Security Sandbox
+
+- **Cross-App Web Compatibility**: Extends add-in functionality from Excel Desktop into Excel on the Web while overcoming browser Mixed Active Content and W3C Private Network Access (PNA) blocks.
+- **Zero-Dependency Local WSS Proxy (`scripts/wss-proxy.js`)**: Runs a lightweight Node.js TLS proxy on `wss://localhost:8891` backed by existing Windows development certificates (`~/.office-addin-dev-certs`), piping decrypted frames to local Kanata (`ws://127.0.0.1:8890`).
+- **Dynamic Secure Protocol Negotiation**: `WebSocketClient` automatically selects `wss://` when targeting secure ports (`8891`) or HTTPS cloud origins.
+- **Future Native Kanata WSS Blueprint**: Architectural roadmap for dual-port TLS termination (`tokio-rustls`) built directly into `kanata.exe` with zero external scripts.
+
+> Deep Dive: See [Cross-App WSS & Browser Security Sandbox Guide](features/cross_app_wss_and_browser_sandbox_guide.md)
+
 ## Development
 
 The project uses:

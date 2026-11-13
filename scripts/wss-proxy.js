@@ -65,3 +65,4 @@ server.listen(LISTEN_PORT, 'localhost', () => {
   console.log(`[wss-proxy] Secure WebSocket proxy listening on wss://localhost:${LISTEN_PORT}`);
   console.log(`[wss-proxy] Forwarding traffic to Kanata at ws://127.0.0.1:${TARGET_PORT}`);
 });
+

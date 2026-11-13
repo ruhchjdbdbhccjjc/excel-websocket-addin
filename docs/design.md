@@ -179,6 +179,34 @@ Kanata is frequently restarted during development or configuration switching (`l
 
 ---
 
+### 3.5. Network Security & Cross-Origin WSS Transport
+
+While native desktop environments (such as Win32 WebView2) have unrestricted loopback access to `ws://127.0.0.1:8890`, cloud-hosted web runtimes (such as Excel on the Web at `https://excel.office.com`) execute inside a sandboxed browser `<iframe>` guarded by W3C security policies:
+
+```text
++---------------------------------------------------------------------------------+
+|               CROSS-PLATFORM WEBSOCKET TRANSPORT TOPOLOGY                       |
++---------------------------------------------------------------------------------+
+  Excel Desktop (Win32 WebView2)  ---> ws://127.0.0.1:8890  ---> Kanata Core (:8890)
+  Excel on the Web (Office Cloud) ---> wss://localhost:8891 ---> WSS Proxy (:8891)
+                                                                       |
+                                                                       v
+                                                              Kanata Core (:8890)
+```
+
+1. **Dual Transport Ports**:
+   - **Port `8890` (`ws://`)**: Default plaintext TCP WebSocket server hosted directly by `kanata.exe`. Used by desktop runtimes and browser extensions.
+   - **Port `8891` (`wss://`)**: Secure TLS reverse proxy hosted via [`scripts/wss-proxy.js`](../scripts/wss-proxy.js). Terminated with trusted local certificates (`~/.office-addin-dev-certs/localhost.crt`) and forwarded to port `8890`.
+2. **Browser Sandbox Mitigation**:
+   - **Mixed Active Content**: [`WebSocketClient`](../src/websocket/client/WebSocketClient.ts#L61) detects secure origins or port `8891` targets, automatically requesting `wss://` instead of `ws://` to satisfy browser encryption constraints.
+   - **Private Network Access (PNA)**: Proxy and endpoints emit `Access-Control-Allow-Private-Network: true` to prevent browser preflight rejections.
+3. **Future Native Termination Blueprint**:
+   - Eliminates external node scripts by integrating `tokio-rustls` directly into Kanata's binary, binding dual listeners (`:8890` plaintext and `:8891` TLS) automatically when local development certificates are detected.
+
+> Deep Dive: See [Cross-App WSS & Browser Security Sandbox Guide](features/cross_app_wss_and_browser_sandbox_guide.md)
+
+---
+
 ## 4. Headless Command Execution Pipeline
 
 When Kanata transmits an action message over WebSocket, the add-in executes it directly via the Excel JavaScript Object Model:
@@ -299,6 +327,9 @@ Conditional formatting is Excel's native presentation layer. However, if Excel t
 | File | Purpose |
 | :--- | :--- |
 | [`scripts/convert-manifest.js`](../scripts/convert-manifest.js) | Manifest generation script with Shared Runtime & Ribbon definitions |
+| [`scripts/build-manifest.js`](../scripts/build-manifest.js) | Build script generating production GitHub Pages manifest (`manifest.github.xml`) |
+| [`scripts/wss-proxy.js`](../scripts/wss-proxy.js) | Zero-dependency local TLS reverse proxy forwarding `wss://localhost:8891` to `ws://127.0.0.1:8890` |
+| [`docs/features/cross_app_wss_and_browser_sandbox_guide.md`](features/cross_app_wss_and_browser_sandbox_guide.md) | Architectural guide on browser sandbox, Mixed Content, PNA, and native Kanata WSS |
 | [`manifest.xml`](../manifest.xml) | Compiled Office XML manifest sideloaded into Excel |
 | [`src/websocket/service/BackgroundService.ts`](../src/websocket/service/BackgroundService.ts) | Headless daemon managing startup behavior, command execution, and ribbon updates |
 | [`src/websocket/service/ExcelSpotlightService.ts`](../src/websocket/service/ExcelSpotlightService.ts) | Zero-destruction spotlight engine with adaptive selection and crash detox |
