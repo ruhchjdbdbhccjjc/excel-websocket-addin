@@ -49,6 +49,8 @@ ExcelShortcut/
 - [`taskpane.ts`](../src/taskpane/taskpane.ts) - Task pane logic and event handling
 - [`taskpane.css`](../src/taskpane/taskpane.css) - Task pane styling
 - [`excel.ts`](../src/taskpane/excel.ts) - Excel-specific task pane logic
+- [`SettingsTab.tsx`](../src/taskpane/components/settings/SettingsTab.tsx) - Connection settings and master automation toggle
+- [`LogMonitorCard.tsx`](../src/taskpane/components/settings/LogMonitorCard.tsx) - Modularized diagnostic log console
 - [`SpotlightTab.tsx`](../src/taskpane/components/spotlight/SpotlightTab.tsx) - Spotlight control panel and rule stack
 - [`SpotlightRuleCard.tsx`](../src/taskpane/components/spotlight/SpotlightRuleCard.tsx) - Rule card supporting anchor cell and peer matching
 - [`ColorPills.tsx`](../src/taskpane/components/spotlight/ColorPills.tsx) - Pastel color palette picker
@@ -99,11 +101,13 @@ ExcelShortcut/
 **Purpose**: High-level connection state management, settings persistence, and event coordination.
 
 **Key Functions**:
-- [`connect()`](../src/websocket/client/ConnectionManager.ts#L97) - Initiates connection
-- [`disconnect()`](../src/websocket/client/ConnectionManager.ts#L107) - Terminates connection
+- [`connect()`](../src/websocket/client/ConnectionManager.ts#L110) - Initiates connection
+- [`disconnect()`](../src/websocket/client/ConnectionManager.ts#L126) - Terminates connection
 - [`getSettings()`](../src/websocket/client/ConnectionManager.ts#L49) - Retrieves settings
-- [`saveSettings()`](../src/websocket/client/ConnectionManager.ts#L78) - Persists settings
-- [`getConnectionState()`](../src/websocket/client/ConnectionManager.ts#L113) - Gets current state
+- [`saveSettings()`](../src/websocket/client/ConnectionManager.ts#L91) - Persists settings
+- [`isAutomationEnabled()`](../src/websocket/client/ConnectionManager.ts#L116) - Checks automation state
+- [`setAutomationEnabled()`](../src/websocket/client/ConnectionManager.ts#L123) - Toggles automation and socket state
+- [`getConnectionState()`](../src/websocket/client/ConnectionManager.ts#L143) - Gets current state
 
 **Dependencies**:
 - WebSocketClient
@@ -415,24 +419,40 @@ Currently, testing is done manually through:
 
 Future enhancements should include automated unit and integration tests.
 
-## Deployment
+## Deployment & Dual-Manifest Pipeline
 
-The add-in can be deployed locally for development or to Azure for production:
+The add-in employs a decoupled dual-manifest deployment pipeline supporting simultaneous local development and production usage:
 
-**Local Deployment**:
-1. Run `npm run build`
-2. Sideload using `npx office-addin-dev-settings sideload ./dist/manifest.json`
+1. **GitHub Pages Production Deployment**:
+   - Automated via [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml).
+   - Generates production bundle and transforms manifest URLs to `https://ruhchjdbdbhccjjc.github.io/excel-websocket-addin/` via [`scripts/build-manifest.js`](../scripts/build-manifest.js).
+   - Preserves canonical GUID: `c1b06178-4084-4a0e-8f1e-7acddec19930`.
+   - Manifest available at [`manifest.github.xml`](../manifest.github.xml) and published to Trusted Network Catalog.
+2. **Local Development Deployment**:
+   - Dedicated local dev GUID: `d2c17289-5195-5b1f-902f-8bdeeef20031`.
+   - Distinct ribbon label `[DEV] Excel WS` and group `[DEV] Kanata WebSocket`.
+   - Runs locally via `webpack serve` on `https://localhost:3000`.
 
-**Azure Deployment**:
-1. Use Microsoft 365 Agents Toolkit to provision Azure resources
-2. Deploy using the toolkit or CLI
-3. Update manifest with production URL
-4. Build and sideload
+## Streaming & Tool Execution Hardening
+
+To ensure deterministic, byte-exact command execution across Kanata's WebSocket bridge, aggressive Markdown parser fallback heuristics are disabled:
+- **Zero Syntax Coercion**: Commands transmitted over WebSocket envelopes are ingested byte-for-byte without speculative auto-wrapping or synthetic quote escaping.
+- **Payload Invariants**: Preserved through [`ExcelCommandExecutor.ts`](../src/websocket/service/ExcelCommandExecutor.ts) and [`BackgroundService.ts`](../src/websocket/service/BackgroundService.ts).
 
 ## Security Considerations
 
-- WebSocket connections use ws:// (unencrypted) for local development
-- Production should use wss:// (encrypted) for secure communication
-- Settings are stored in browser localStorage (not encrypted)
+- **Cross-Origin WSS Transport**: Cloud origins (Excel on the Web) use secure WebSockets (`wss://localhost:8891`) via [`scripts/wss-proxy.js`](../scripts/wss-proxy.js) backed by local dev certs.
+- **PNA Conformance**: W3C Private Network Access headers (`Access-Control-Allow-Private-Network`) emitted to prevent browser preflight blocks.
+- **Desktop Loopback**: Excel Desktop connects directly to `ws://127.0.0.1:8890` over local loopback.
+
+## Historical Migrations (Reference Only)
+
+| Date | Migration | Replaced Subsystem | New Architecture |
+| :--- | :--- | :--- | :--- |
+| 2026-11 | Dual-Manifest Isolation | Single shared GUID `c1b06178` | Independent Dev GUID `d2c17289` & Master Automation Toggle |
+| 2026-11 | GitHub Pages Cloud Hosting | Local-only dev server mandate | Automated GitHub Actions static CDN hosting |
+| 2026-10 | Crash Detox & Spotlight | Monolithic raw conditional format | 3-phase batched whole-workbook purge engine |
+| 2026-10 | Bilingual MSO Hub | Generic .tbx string tables | Direct COM-extracted bilingual database (2,243 commands) |
+
 - No authentication is currently implemented
 - Future: Add authentication and encryption for production use

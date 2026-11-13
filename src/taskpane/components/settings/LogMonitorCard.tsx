@@ -146,3 +146,4 @@ export const LogMonitorCard: Component<LogMonitorCardProps> = (props) => {
     </div>
   );
 };
+

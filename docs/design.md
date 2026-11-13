@@ -207,6 +207,34 @@ While native desktop environments (such as Win32 WebView2) have unrestricted loo
 
 ---
 
+### 3.6. Dual-Environment Identity & Master Automation Toggle
+
+To support local developer debugging alongside production users on the same machine without collisions, the system implements dual-manifest isolation and a master execution switch:
+
+```text
++---------------------------------------------------------------------------------+
+|               DUAL-ENVIRONMENT ARBITRATION & AUTOMATION TOGGLE                 |
++---------------------------------------------------------------------------------+
+  Local Dev:  GUID d2c17289-...0031 | [DEV] Excel WS    | https://localhost:3000
+  Production: GUID c1b06178-...9930 | Excel WebSocket   | https://...github.io
+                                     |
+                                     v
+                 [ Master Toggle: Disabled / Enabled ]
+                 - Disabled: Socket closed, retry canceled, ribbon dimmed
+                 - Enabled:  Socket connected, full Kanata IPC active
+```
+
+1. **Manifest Segregation**:
+   - Distinct GUIDs prevent Office Web Extension Framework (WEF) cache collisions.
+   - Distinct ribbon labels (`[DEV] Excel WS` vs `Excel WebSocket`) ensure visual clarity.
+2. **Master Automation Guard**:
+   - [`ConnectionManager.setAutomationEnabled`](../src/websocket/client/ConnectionManager.ts#L125) provides instant (< 10ms) socket disconnect and cancelation of backoff retry timers.
+   - [`BackgroundService`](../src/websocket/service/BackgroundService.ts#L86) guards `initialize()` and `handleRemoteMessage()` so dormant instances generate zero network traffic and execute zero commands.
+
+> Deep Dive: See [Dual-Environment Isolation & Master Automation Toggle](features/dual_env_isolation_and_automation_toggle.md)
+
+---
+
 ## 4. Headless Command Execution Pipeline
 
 When Kanata transmits an action message over WebSocket, the add-in executes it directly via the Excel JavaScript Object Model:
@@ -330,7 +358,9 @@ Conditional formatting is Excel's native presentation layer. However, if Excel t
 | [`scripts/build-manifest.js`](../scripts/build-manifest.js) | Build script generating production GitHub Pages manifest (`manifest.github.xml`) |
 | [`scripts/wss-proxy.js`](../scripts/wss-proxy.js) | Zero-dependency local TLS reverse proxy forwarding `wss://localhost:8891` to `ws://127.0.0.1:8890` |
 | [`docs/features/cross_app_wss_and_browser_sandbox_guide.md`](features/cross_app_wss_and_browser_sandbox_guide.md) | Architectural guide on browser sandbox, Mixed Content, PNA, and native Kanata WSS |
-| [`manifest.xml`](../manifest.xml) | Compiled Office XML manifest sideloaded into Excel |
+| [`docs/features/dual_env_isolation_and_automation_toggle.md`](features/dual_env_isolation_and_automation_toggle.md) | Architectural guide on dual-environment isolation and master automation toggle |
+| [`manifest.xml`](../manifest.xml) | Dedicated local dev Office XML manifest sideloaded into Excel |
+| [`manifest.github.xml`](../manifest.github.xml) | Production Office XML manifest hosted on GitHub Pages CDN |
 | [`src/websocket/service/BackgroundService.ts`](../src/websocket/service/BackgroundService.ts) | Headless daemon managing startup behavior, command execution, and ribbon updates |
 | [`src/websocket/service/ExcelSpotlightService.ts`](../src/websocket/service/ExcelSpotlightService.ts) | Zero-destruction spotlight engine with adaptive selection and crash detox |
 | [`src/websocket/service/ExcelPositionSlotManager.ts`](../src/websocket/service/ExcelPositionSlotManager.ts) | Fast position slot memory and safe selection tracking |
@@ -338,6 +368,8 @@ Conditional formatting is Excel's native presentation layer. However, if Excel t
 | [`src/i18n/index.ts`](../src/i18n/index.ts) | Reactive i18n hook, multi-tier locale detection, and storage persistence |
 | [`src/websocket/client/ConnectionManager.ts`](../src/websocket/client/ConnectionManager.ts) | Multi-listener connection manager and settings storage bridge |
 | [`src/websocket/client/WebSocketClient.ts`](../src/websocket/client/WebSocketClient.ts) | Resilient WebSocket transport client with infinite auto-reconnection |
+| [`src/taskpane/components/settings/SettingsTab.tsx`](../src/taskpane/components/settings/SettingsTab.tsx) | Connection settings UI with reactive master automation switch (< 175 lines) |
+| [`src/taskpane/components/settings/LogMonitorCard.tsx`](../src/taskpane/components/settings/LogMonitorCard.tsx) | Modular diagnostic log console with export and copy (< 150 lines) |
 | [`src/taskpane/theme/ThemeManager.ts`](../src/taskpane/theme/ThemeManager.ts) | Theme manager detecting Excel theme and system dark mode |
 | [`src/data/CommandSearchEngine.ts`](../src/data/CommandSearchEngine.ts) | High-speed bilingual search engine with Pinyin and acronym indexing |
 | [`src/data/excel_mso_bilingual.json`](../src/data/excel_mso_bilingual.json) | 2,243 official Excel commands with bilingual labels and explanations |

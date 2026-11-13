@@ -90,6 +90,14 @@ The add-in includes a zero-destruction spotlight highlighting system powered by 
 
 > Deep Dive: See [Cross-App WSS & Browser Security Sandbox Guide](features/cross_app_wss_and_browser_sandbox_guide.md)
 
+## Dual-Environment Isolation & Master Automation Toggle
+
+- **Manifest Identity Segregation**: Local Dev manifest uses dedicated GUID `d2c17289-5195-5b1f-902f-8bdeeef20031` with `[DEV] Excel WS` ribbon badging, while GitHub Production retains canonical GUID `c1b06178-4084-4a0e-8f1e-7acddec19930`. Both sideload cleanly side-by-side in Excel Desktop without WEF cache corruption.
+- **Master Automation Toggle**: Instant UI switch in the Settings tab (`SettingsTab.tsx`) allowing users to mute WebSocket activity in < 10ms. Toggling OFF immediately closes the socket, cancels reconnection retry loops, and dims the ribbon button.
+- **Strict Single-Client Arbitration**: Guarantees Kanata's `SendToClient` and `SendToChannel` operations never suffer from client starvation or duplicate execution race conditions during concurrent local and production runs.
+
+> Deep Dive: See [Dual-Environment Isolation & Master Automation Toggle](features/dual_env_isolation_and_automation_toggle.md)
+
 ## Development
 
 The project uses:
