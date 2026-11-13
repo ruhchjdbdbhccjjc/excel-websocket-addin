@@ -274,6 +274,47 @@ To ensure seamless sideloading without certificate or administrative blocks, `ma
 - Physical path: `C:\Users\Public\OfficeManifests\manifest.xml`
 - UNC Share path: `\\DESKTOP-TP761MQ\Users\Public\OfficeManifests`
 
+### 5.3. GitHub Actions Continuous Deployment & Direct Live Update Pipeline
+
+When modifying local source code, changes propagate directly to production via an automated GitHub Actions CI/CD pipeline:
+
+```text
++---------------------------------------------------------------------------------------------------+
+|               AUTOMATED CONTINUOUS DEPLOYMENT & DIRECT LIVE UPDATE WORKFLOW                       |
++---------------------------------------------------------------------------------------------------+
+
+   1. LOCAL MODIFICATION
+      Developer edits source code in websocket/excel_websocket_Offic_Add_in/src/
+              |
+              v
+   2. GIT PUSH TO MAIN
+      git commit -am "feature: update add-in logic"
+      git push origin main
+              |
+              v
+   3. GITHUB ACTIONS AUTO-BUILD (.github/workflows/deploy.yml)
+      - Triggers automatically on push to main (triggers within ~5s)
+      - Executes: npm ci
+      - Compiles production bundle: npm run build (into dist/)
+      - Injects production URLs & GUID: node scripts/build-manifest.js
+      - Deploys static assets to GitHub Pages CDN (~40s runtime)
+              |
+              v
+   4. GITHUB PAGES CDN (https://ruhchjdbdbhccjjc.github.io/excel-websocket-addin/)
+      Static files updated live on GitHub edge CDN: taskpane.js, taskpane.html, taskpane.css
+              |
+              v
+   5. ZERO-FRICTION CLIENT UPDATE (Excel Desktop WebView2)
+      - Manifest already points to https://ruhchjdbdbhccjjc.github.io/.../taskpane.html
+      - On next Excel open or Taskpane right-click -> "Reload":
+        WebView2 loads the fresh CDN bundle instantly!
+      - ZERO re-sideloading or XML re-installation required!
+```
+
+- **Workflow File**: [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml)
+- **Manifest Injector**: [`scripts/build-manifest.js`](../scripts/build-manifest.js)
+- **Production CDN Target**: `https://ruhchjdbdbhccjjc.github.io/excel-websocket-addin/taskpane.html`
+
 ---
 
 ## 6. Multi-Language Split-File Architecture (i18n)

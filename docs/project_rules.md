@@ -66,6 +66,11 @@ This document defines the core project rules, reference implementations, and arc
   - Excel Desktop connects directly to `ws://127.0.0.1:8890`.
 - **Rule 1.5 (WEF Cache Invalidation Protocol)**:
   Excel aggressively caches manifests in `%LOCALAPPDATA%\Microsoft\Office\16.0\Wef\`. Whenever manifest GUIDs, ribbon group IDs, or URLs change, close Excel and purge the WEF cache.
+- **Rule 1.6 (Automated Continuous Deployment & Live Update Workflow)**:
+  - Source updates in `src/` are published to production by pushing to the repository's `main` branch:
+    `git add . && git commit -m "..." && git push origin main`
+  - GitHub Actions ([`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml)) automatically runs `npm run build` and deploys the fresh bundle to GitHub Pages CDN in ~40 seconds.
+  - Excel Desktop clients automatically receive the latest code upon reopening Excel or right-clicking the Taskpane and selecting **Reload** (重新加载). Re-sideloading or touching `manifest.xml` is never required for frontend code changes.
 
 ### 2. TypeScript & Code Standards
 
