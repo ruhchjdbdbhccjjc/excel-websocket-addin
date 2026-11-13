@@ -4,12 +4,12 @@
   xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" 
   xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" 
   xsi:type="TaskPaneApp">
-  <Id>c1b06178-4084-4a0e-8f1e-7acddec19930</Id>
+  <Id>d2c17289-5195-5b1f-902f-8bdeeef20031</Id>
   <Version>1.0.0.1</Version>
   <ProviderName>Contoso</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
-  <DisplayName DefaultValue="Excel WebSocket"/>
-  <Description DefaultValue="Excel WebSocket Office Add-in"/>
+  <DisplayName DefaultValue="[DEV] Excel WebSocket"/>
+  <Description DefaultValue="[DEV] Excel WebSocket Office Add-in (Localhost)"/>
   <IconUrl DefaultValue="https://localhost:3000/assets/icon-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/icon-80.png"/>
   <SupportUrl DefaultValue="https://www.contoso.com"/>
@@ -87,13 +87,13 @@
         <bt:Url id="Support.Url" DefaultValue="https://www.contoso.com"/>
       </bt:Urls>
       <bt:ShortStrings>
-        <bt:String id="Group.Label" DefaultValue="Excel WebSocket"/>
-        <bt:String id="GetStarted.Title" DefaultValue="Excel WebSocket Loaded"/>
-        <bt:String id="Taskpane.Label" DefaultValue="Excel WebSocket"/>
+        <bt:String id="Group.Label" DefaultValue="[DEV] Kanata WebSocket"/>
+        <bt:String id="GetStarted.Title" DefaultValue="[DEV] Excel WebSocket Loaded"/>
+        <bt:String id="Taskpane.Label" DefaultValue="[DEV] Excel WS"/>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="GetStarted.Description" DefaultValue="Excel WebSocket add-in loaded successfully."/>
-        <bt:String id="Taskpane.Tooltip" DefaultValue="Open Excel WebSocket panel and view connection status."/>
+        <bt:String id="GetStarted.Description" DefaultValue="[DEV] Localhost Excel WebSocket add-in loaded successfully."/>
+        <bt:String id="Taskpane.Tooltip" DefaultValue="[DEV] Open Localhost Excel WebSocket panel and view connection status."/>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>

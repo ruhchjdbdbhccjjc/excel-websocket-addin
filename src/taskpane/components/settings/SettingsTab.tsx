@@ -1,8 +1,8 @@
-import { Component, createSignal, onMount, For } from 'solid-js';
+import { Component, createSignal, onMount } from 'solid-js';
 import { BackgroundService } from '../../../websocket/service/BackgroundService';
 import { ConnectionState } from '../../../websocket/client/ConnectionManager';
-import { LogEntry } from '../../../websocket/logging/Logger';
 import { useI18n } from '../../../i18n';
+import { LogMonitorCard } from './LogMonitorCard';
 
 export const SettingsTab: Component = () => {
   const { t, locale, setLocale } = useI18n();
@@ -14,8 +14,7 @@ export const SettingsTab: Component = () => {
   const [port, setPort] = createSignal(8890);
   const [clientName, setClientName] = createSignal('excel');
   const [channels, setChannels] = createSignal('excel_websocket_Offic_Add_in');
-  const [logs, setLogs] = createSignal<LogEntry[]>([]);
-  const [toastMsg, setToastMsg] = createSignal<string>('');
+  const [automationEnabled, setAutomationEnabled] = createSignal(true);
 
   const refreshState = async () => {
     setConnState(connMgr.getConnectionState());
@@ -23,7 +22,7 @@ export const SettingsTab: Component = () => {
     setPort(s.port);
     setClientName(s.clientName);
     setChannels(s.channels.join(','));
-    setLogs(logger.getLogs().slice(-20));
+    setAutomationEnabled(s.automationEnabled !== false);
   };
 
   onMount(async () => {
@@ -32,91 +31,26 @@ export const SettingsTab: Component = () => {
       connMgr.on('stateChange', (state) => {
         setConnState(state);
       });
-      setInterval(() => {
-        setLogs(logger.getLogs().slice(-20));
-      }, 1500);
     } catch (err) {
       console.warn('SettingsTab onMount error:', err);
     }
   });
 
-  const getFormattedLogs = (): string => {
-    const allLogs = logger.getLogs();
-    const diag = typeof Office !== 'undefined' && Office.context ? Office.context.diagnostics : null;
-    const hostInfo = diag ? `${diag.host} (${diag.platform}) v${diag.version}` : 'Unknown Host';
-
-    const header = [
-      '================================================================================',
-      '                     Excel Flow Add-in Diagnostic Log Bundle',
-      ` Exported At: ${new Date().toLocaleString()} (${new Date().toISOString()})`,
-      ` Environment: ${hostInfo}`,
-      ` Language: ${locale()}`,
-      ` Connection State: ${connState()}`,
-      ` WebSocket Server: ws://localhost:${port()}`,
-      ` Channels: ${channels()}`,
-      ` Total Log Count: ${allLogs.length} (Ring Buffer Max: 1000)`,
-      '================================================================================\n'
-    ].join('\n');
-
-    const lines = allLogs.map((entry) => {
-      const time = entry.timestamp ? new Date(entry.timestamp).toISOString() : new Date().toISOString();
-      const level = (entry.level || 'INFO').toUpperCase().padEnd(5, ' ');
-      const scope = (entry.scope || 'SYSTEM').padEnd(10, ' ');
-      const dataStr = entry.data !== undefined ? ` | Data: ${JSON.stringify(entry.data)}` : '';
-      const errStr = entry.error ? ` | Error: ${JSON.stringify(entry.error)}` : '';
-      return `[${time}] [${level}] [${scope}] ${entry.message}${dataStr}${errStr}`;
-    }).join('\n');
-
-    return `${header}\n${lines}`;
-  };
-
-  const handleExportFile = () => {
-    try {
-      const content = getFormattedLogs();
-      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const now = new Date();
-      const timeStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
-      a.href = url;
-      a.download = `excel-flow-debug-${timeStr}.log`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      setToastMsg(t().common.downloadSuccess);
-      setTimeout(() => setToastMsg(''), 3000);
-    } catch {
-      handleCopyLogs();
-    }
-  };
-
-  const handleCopyLogs = async () => {
-    try {
-      const content = getFormattedLogs();
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(content);
-      } else {
-        const textarea = document.createElement('textarea');
-        textarea.value = content;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-      }
-      setToastMsg(t().common.copiedSuccess);
-      setTimeout(() => setToastMsg(''), 3000);
-    } catch {
-      setToastMsg('✕ Failed to copy logs');
-      setTimeout(() => setToastMsg(''), 3000);
-    }
+  const handleToggleAutomation = async () => {
+    const next = !automationEnabled();
+    setAutomationEnabled(next);
+    await connMgr.setAutomationEnabled(next);
+    await refreshState();
   };
 
   const handleConnect = async () => {
     await connMgr.saveSettings({
       port: Number(port()),
       clientName: clientName(),
-      channels: channels().split(',').map((c) => c.trim()).filter(Boolean)
+      channels: channels().split(',').map((c) => c.trim()).filter(Boolean),
+      autoConnect: true,
+      clientType: 'office-addin',
+      automationEnabled: automationEnabled()
     });
     await connMgr.connect();
     await refreshState();
@@ -156,6 +90,29 @@ export const SettingsTab: Component = () => {
         </div>
       </div>
 
+      {/* 2. Automation Master Toggle Card */}
+      <div class="field-card" style={{ "margin-bottom": "14px" }}>
+        <div class="field-row" style={{ "justify-content": "space-between", "align-items": "center" }}>
+          <div style={{ "display": "flex", "flex-direction": "column", "gap": "2px", "padding-right": "8px" }}>
+            <span style={{ "font-weight": "600", "font-size": "13px" }}>{t().settings.automationToggle}</span>
+            <span style={{ "font-size": "11px", "color": "var(--text-muted)" }}>
+              {t().settings.automationDesc}
+            </span>
+          </div>
+          <button
+            type="button"
+            class="toggle-switch-btn"
+            classList={{ active: automationEnabled() }}
+            onClick={handleToggleAutomation}
+            title={automationEnabled() ? t().common.enabled : t().common.disabled}
+          >
+            <span class="toggle-knob" />
+            <span class="toggle-label">{automationEnabled() ? t().common.enabled : t().common.disabled}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 3. Kanata WebSocket Bridge Settings */}
       <div class="card-intro">
         <h3>{t().settings.bridgeTitle}</h3>
         <p>{t().settings.bridgeDesc}</p>
@@ -204,55 +161,13 @@ export const SettingsTab: Component = () => {
         </button>
       </div>
 
-      {/* Log Monitor with Export and Copy */}
-      <div class="log-section">
-        <div class="log-header">
-          <div class="log-header-left">
-            <span>{t().settings.consoleLogs}:</span>
-            {toastMsg() && <span class="log-toast">{toastMsg()}</span>}
-          </div>
-          <div class="log-actions">
-            <button
-              type="button"
-              class="log-action-btn export"
-              onClick={handleExportFile}
-              title={t().settings.exportLogs}
-            >
-              {t().settings.exportLogs}
-            </button>
-            <button
-              type="button"
-              class="log-action-btn copy"
-              onClick={handleCopyLogs}
-              title={t().settings.copyLogs}
-            >
-              {t().settings.copyLogs}
-            </button>
-            <button
-              type="button"
-              class="log-action-btn clear"
-              onClick={() => {
-                logger.clearLogs();
-                setLogs([]);
-              }}
-              title="Clear"
-            >
-              🗑️
-            </button>
-          </div>
-        </div>
-        <div class="log-box">
-          <For each={logs()}>
-            {(entry) => (
-              <div class="log-line" classList={{ err: entry.level === 'error', warn: entry.level === 'warn' }}>
-                <span class="log-time">{entry.timestamp.toLocaleTimeString()}</span>
-                <span class="log-level">[{entry.level.toUpperCase()}]</span>
-                <span class="log-msg">{entry.message}</span>
-              </div>
-            )}
-          </For>
-        </div>
-      </div>
+      {/* 4. Log Monitor */}
+      <LogMonitorCard
+        logger={logger}
+        port={port}
+        channels={channels}
+        connState={connState}
+      />
     </div>
   );
 };

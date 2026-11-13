@@ -88,8 +88,12 @@ export class BackgroundService {
       const settings = await this.connectionManager.getSettings();
       this.logger.info('BackgroundService settings loaded:', settings);
       
-      // Auto-connect to local Kanata WebSocket server
-      await this.connectionManager.connect();
+      if (settings.automationEnabled !== false && settings.autoConnect !== false) {
+        await this.connectionManager.connect();
+      } else {
+        this.logger.info('BackgroundService automation is disabled; staying offline');
+        await this.updateRibbonState(ConnectionState.Disconnected);
+      }
     } catch (error) {
       this.logger.error('Failed to auto-connect in BackgroundService:', error);
     }
@@ -175,6 +179,11 @@ export class BackgroundService {
    * @param message Parsed incoming message
    */
   private async handleRemoteMessage(message: ParsedMessage): Promise<void> {
+    if (!this.connectionManager.isAutomationEnabled()) {
+      this.logger.warn('Ignoring remote message: Kanata automation is disabled by user');
+      return;
+    }
+
     this.logger.info('BackgroundService received message:', message);
 
     let cmdPayload: any = null;

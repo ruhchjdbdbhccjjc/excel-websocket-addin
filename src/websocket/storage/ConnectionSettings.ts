@@ -8,6 +8,7 @@ export interface ConnectionSettings {
   clientType: string;
   channels: string[];
   autoConnect: boolean;
+  automationEnabled?: boolean;
   onlyWhenFocused?: boolean;
   logLevel?: string; // Optional for backward compatibility
 }
@@ -18,6 +19,7 @@ export const DEFAULT_SETTINGS: ConnectionSettings = {
   clientType: 'office-addin',
   channels: ['excel_websocket_Offic_Add_in'],
   autoConnect: true,
+  automationEnabled: true,
   onlyWhenFocused: true,
   logLevel: 'info'
 };

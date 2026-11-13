@@ -75,6 +75,8 @@ export const zhCN: TranslationSchema = {
     languageLabel: '界面显示语言 (Language):',
     exportLogs: '📥 导出日志文件',
     copyLogs: '📋 复制全部日志',
-    consoleLogs: '实时诊断控制台'
+    consoleLogs: '实时诊断控制台',
+    automationToggle: 'Kanata 自动化桥接',
+    automationDesc: '启用与 Kanata 的后台 WebSocket 连接及自动化命令执行。'
   }
 };

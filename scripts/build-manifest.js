@@ -38,6 +38,14 @@ if (fs.existsSync(manifestXmlPath)) {
   xml = xml.replace(/https:\/\/localhost:3000\//g, targetUrl);
   xml = xml.replace(/<AppDomain>https:\/\/localhost:3000<\/AppDomain>/g, `<AppDomain>${targetOrigin}</AppDomain>`);
 
+  // Ensure production manifest uses canonical Production GUID and clean labels (not [DEV])
+  xml = xml.replace(/<Id>d2c17289-5195-5b1f-902f-8bdeeef20031<\/Id>/g, '<Id>c1b06178-4084-4a0e-8f1e-7acddec19930</Id>');
+  xml = xml.replace(/\[DEV\] Excel WebSocket/g, 'Excel WebSocket');
+  xml = xml.replace(/\[DEV\] Kanata WebSocket/g, 'Kanata WebSocket');
+  xml = xml.replace(/\[DEV\] Excel WS/g, 'Excel WebSocket');
+  xml = xml.replace(/\[DEV\] Localhost Excel WebSocket add-in loaded successfully\./g, 'Excel WebSocket add-in loaded successfully.');
+  xml = xml.replace(/\[DEV\] Open Localhost Excel WebSocket panel and view connection status\./g, 'Open Excel WebSocket panel and view connection status.');
+
   const distXmlPath = path.join(distDir, 'manifest.xml');
   fs.writeFileSync(distXmlPath, xml, 'utf8');
   console.log(`[build-manifest] Generated ${distXmlPath} -> Base URL: ${targetUrl}`);

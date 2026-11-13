@@ -76,5 +76,7 @@ export interface TranslationSchema {
     exportLogs: string;
     copyLogs: string;
     consoleLogs: string;
+    automationToggle: string;
+    automationDesc: string;
   };
 }

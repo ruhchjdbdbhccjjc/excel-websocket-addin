@@ -75,6 +75,8 @@ export const enUS: TranslationSchema = {
     languageLabel: 'Display Language:',
     exportLogs: '📥 Export Log File',
     copyLogs: '📋 Copy All Logs',
-    consoleLogs: 'Live Diagnostic Console'
+    consoleLogs: 'Live Diagnostic Console',
+    automationToggle: 'Kanata Automation Bridge',
+    automationDesc: 'Enable background WebSocket connection and command automation from Kanata.'
   }
 };

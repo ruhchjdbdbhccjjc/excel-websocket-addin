@@ -163,3 +163,4 @@ To eliminate all external scripts (`wss-proxy.js`) and achieve a single self-con
 | **Excel Desktop (Mac)** | `ws://127.0.0.1:8890` | **No** (Uses GitHub Pages) | **Yes (WebKit)** |
 | **Excel on the Web (Local)** | `wss://localhost:8891` | **No** (Uses `npm run wss-proxy`) | **Yes (via WSS Proxy)** |
 | **Excel on the Web (Remote)** | `wss://*.trycloudflare.com` | **No** | **Yes (via Cloudflare Tunnel)** |
+

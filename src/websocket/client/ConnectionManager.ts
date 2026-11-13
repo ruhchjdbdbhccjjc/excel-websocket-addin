@@ -49,13 +49,14 @@ export class ConnectionManager {
   async getSettings(): Promise<ConnectionSettings> {
     try {
       const settings = await this.storage.getMultiple<Record<string, unknown>>(
-        ['ws_port', 'ws_client_name', 'ws_client_type', 'ws_channels', 'ws_auto_connect'],
+        ['ws_port', 'ws_client_name', 'ws_client_type', 'ws_channels', 'ws_auto_connect', 'ws_automation_enabled'],
         {
           ws_port: DEFAULT_SETTINGS.port,
           ws_client_name: DEFAULT_SETTINGS.clientName,
           ws_client_type: DEFAULT_SETTINGS.clientType,
           ws_channels: DEFAULT_SETTINGS.channels,
-          ws_auto_connect: DEFAULT_SETTINGS.autoConnect
+          ws_auto_connect: DEFAULT_SETTINGS.autoConnect,
+          ws_automation_enabled: DEFAULT_SETTINGS.automationEnabled
         }
       );
 
@@ -72,6 +73,9 @@ export class ConnectionManager {
         autoConnect: settings.ws_auto_connect !== undefined && settings.ws_auto_connect !== null
           ? (settings.ws_auto_connect as boolean)
           : DEFAULT_SETTINGS.autoConnect,
+        automationEnabled: settings.ws_automation_enabled !== undefined && settings.ws_automation_enabled !== null
+          ? (settings.ws_automation_enabled as boolean)
+          : DEFAULT_SETTINGS.automationEnabled,
         logLevel: 'info' as any // Default value, not used
       };
 
@@ -93,7 +97,8 @@ export class ConnectionManager {
         ws_client_name: settings.clientName,
         ws_client_type: settings.clientType,
         ws_channels: settings.channels,
-        ws_auto_connect: settings.autoConnect
+        ws_auto_connect: settings.autoConnect,
+        ws_automation_enabled: settings.automationEnabled !== undefined ? settings.automationEnabled : true
       });
 
       this.currentSettings = settings;
@@ -101,6 +106,29 @@ export class ConnectionManager {
     } catch (error) {
       this.logger.error('Failed to save settings', error);
       throw error;
+    }
+  }
+
+  /**
+   * Check whether Kanata automation is actively enabled
+   */
+  isAutomationEnabled(): boolean {
+    return this.currentSettings.automationEnabled !== false;
+  }
+
+  /**
+   * Enable or disable automation; toggling off immediately closes the socket and halts retries
+   */
+  async setAutomationEnabled(enabled: boolean): Promise<void> {
+    const settings = await this.getSettings();
+    settings.automationEnabled = enabled;
+    await this.saveSettings(settings);
+    if (!enabled) {
+      this.logger.info('Automation disabled by user: disconnecting WebSocket and halting automation listeners');
+      this.disconnect();
+    } else {
+      this.logger.info('Automation enabled by user: reconnecting WebSocket');
+      await this.connect();
     }
   }
 
